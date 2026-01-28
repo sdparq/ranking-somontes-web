@@ -4,7 +4,6 @@
 
 let currentUser = null;
 let isAdmin = false;
-let isSignUp = false;
 
 // Data caches
 let allPlayers = [];
@@ -69,11 +68,9 @@ async function showAdminPanel() {
 
 function initAuthForm() {
     const form = document.getElementById('authForm');
-    const toggleBtn = document.getElementById('toggleAuth');
     const togglePassword = document.getElementById('togglePassword');
 
     form.addEventListener('submit', handleAuth);
-    toggleBtn.addEventListener('click', toggleAuthMode);
     togglePassword.addEventListener('click', () => {
         const input = document.getElementById('password');
         input.type = input.type === 'password' ? 'text' : 'password';
@@ -82,53 +79,25 @@ function initAuthForm() {
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
 }
 
-function toggleAuthMode() {
-    isSignUp = !isSignUp;
-
-    document.getElementById('authTitle').textContent = isSignUp ? 'Crear Cuenta' : 'Acceso Administrador';
-    document.getElementById('authSubtitle').textContent = isSignUp
-        ? 'Crea una cuenta para solicitar acceso de administrador.'
-        : 'Introduce tus credenciales para acceder al panel.';
-    document.getElementById('authSubmit').textContent = isSignUp ? 'Crear Cuenta' : 'Iniciar Sesion';
-    document.getElementById('toggleAuth').textContent = isSignUp ? 'Ya tienes cuenta? Inicia sesion' : 'No tienes cuenta? Registrate';
-
-    document.getElementById('authError').classList.add('hidden');
-    document.getElementById('authSuccess').classList.add('hidden');
-}
-
 async function handleAuth(e) {
     e.preventDefault();
 
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const errorEl = document.getElementById('authError');
-    const successEl = document.getElementById('authSuccess');
     const submitBtn = document.getElementById('authSubmit');
 
     errorEl.classList.add('hidden');
-    successEl.classList.add('hidden');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Cargando...';
 
     try {
-        if (isSignUp) {
-            const { error } = await signUp(email, password);
-            if (error) {
-                errorEl.textContent = error.message || 'Error al registrarse.';
-                errorEl.classList.remove('hidden');
-            } else {
-                successEl.textContent = 'Cuenta creada! Ahora inicia sesion.';
-                successEl.classList.remove('hidden');
-                toggleAuthMode();
-            }
+        const { error } = await signIn(email, password);
+        if (error) {
+            errorEl.textContent = 'Credenciales incorrectas. Por favor, verifica tu email y contrasena.';
+            errorEl.classList.remove('hidden');
         } else {
-            const { error } = await signIn(email, password);
-            if (error) {
-                errorEl.textContent = 'Credenciales incorrectas. Por favor, verifica tu email y contrasena.';
-                errorEl.classList.remove('hidden');
-            } else {
-                await checkAuth();
-            }
+            await checkAuth();
         }
     } catch (err) {
         errorEl.textContent = 'Error de conexion. Intenta de nuevo.';
@@ -136,7 +105,7 @@ async function handleAuth(e) {
     }
 
     submitBtn.disabled = false;
-    submitBtn.textContent = isSignUp ? 'Crear Cuenta' : 'Iniciar Sesion';
+    submitBtn.textContent = 'Iniciar Sesion';
 }
 
 async function handleLogout() {
