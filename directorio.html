@@ -124,7 +124,16 @@
                 </svg>
                 <input type="text" id="searchInput" placeholder="Buscar jugador...">
             </div>
-            <p class="text-muted" id="playerCount">Cargando...</p>
+            <div class="filter-actions">
+                <button class="btn btn-secondary" id="btnShowContacts">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Ver Contactos
+                </button>
+                <p class="text-muted" id="playerCount">Cargando...</p>
+            </div>
         </div>
 
         <!-- Players Grid -->
@@ -143,6 +152,28 @@
 
     <!-- Toast Container -->
     <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Password Modal -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Acceso a Contactos</h3>
+                <button class="modal-close" id="closePasswordModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted" style="margin-bottom: 1rem;">Introduce la contraseña para ver los datos de contacto de los jugadores.</p>
+                <div class="form-group">
+                    <label for="directoryPassword">Contraseña</label>
+                    <input type="password" id="directoryPassword" class="form-control" placeholder="Introduce la contraseña">
+                </div>
+                <p id="passwordError" class="text-danger" style="display: none; margin-top: 0.5rem;">Contraseña incorrecta</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelPassword">Cancelar</button>
+                <button class="btn btn-primary" id="submitPassword">Acceder</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>

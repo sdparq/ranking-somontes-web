@@ -81,6 +81,18 @@ async function fetchPlayersPublic() {
     return data;
 }
 
+// Players with contact info (requires directory password)
+async function fetchPlayersWithContact() {
+    const { data, error } = await supabaseClient
+        .from('players')
+        .select('id, name, email, phone, current_atp_points, is_active')
+        .eq('is_active', true)
+        .order('current_atp_points', { ascending: false });
+
+    if (error) throw error;
+    return data;
+}
+
 async function fetchPlayers() {
     const { data, error } = await supabaseClient
         .from('players')

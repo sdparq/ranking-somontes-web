@@ -1922,6 +1922,73 @@ input, select, textarea {
     color: var(--text-muted);
 }
 
+/* Player card with contact */
+.player-card.with-contact {
+    align-items: flex-start;
+}
+
+.player-card-contact {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.contact-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
+    word-break: break-all;
+}
+
+.contact-link:hover {
+    color: var(--emerald-400);
+}
+
+.contact-link svg {
+    flex-shrink: 0;
+}
+
+/* Filter actions */
+.filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+#btnShowContacts {
+    white-space: nowrap;
+}
+
+#btnShowContacts.active {
+    background: var(--emerald-600);
+    border-color: var(--emerald-600);
+    color: white;
+}
+
+/* Password error */
+.form-control.error {
+    border-color: var(--red-500);
+    animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.text-danger {
+    color: var(--red-400);
+    font-size: 0.875rem;
+}
+
 /* Filter bar */
 .filter-bar {
     display: flex;
