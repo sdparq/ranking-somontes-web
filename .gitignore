@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+package-lock.json
+package.json
+
+# Temporary scripts
+insert-matches.js
+update-serie2.html
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

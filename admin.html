@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Ranking Tenis Somontes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2'%3E%3Ccircle cx='12' cy='8' r='6'/%3E%3Cpath d='M15.477 12.89L17 22l-5-3-5 3 1.523-9.11'/%3E%3C/svg%3E">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="6"/>
+                        <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                    </svg>
+                </div>
+                <span class="logo-text">Ranking Somontes</span>
+            </a>
+
+            <nav class="nav-desktop">
+                <a href="index.html" class="nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="6"/>
+                        <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                    </svg>
+                    Ranking
+                </a>
+                <a href="series.html" class="nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    Series
+                </a>
+                <a href="directorio.html" class="nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    Jugadores
+                </a>
+            </nav>
+
+            <div class="header-actions">
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <nav class="nav-mobile" id="mobileMenu">
+            <a href="index.html" class="nav-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="6"/>
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                </svg>
+                Ranking
+            </a>
+            <a href="series.html" class="nav-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                Series
+            </a>
+            <a href="directorio.html" class="nav-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Jugadores
+            </a>
+        </nav>
+    </header>
+
+    <!-- Login Section -->
+    <div class="login-container" id="loginSection">
+        <div class="login-card">
+            <div class="login-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+            </div>
+            <h2 class="login-title" id="authTitle">Acceso Administrador</h2>
+            <p class="login-subtitle" id="authSubtitle">Introduce tus credenciales para acceder al panel.</p>
+
+            <form id="authForm">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" class="form-input" placeholder="admin@ejemplo.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Contrasena</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" class="form-input" placeholder="********" required>
+                        <button type="button" class="password-toggle" id="togglePassword">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <p class="form-error hidden" id="authError"></p>
+                <p class="form-success hidden" id="authSuccess"></p>
+                <button type="submit" class="btn btn-primary btn-full" id="authSubmit">Iniciar Sesion</button>
+            </form>
+
+            <div class="auth-toggle">
+                <button type="button" class="link-btn" id="toggleAuth">No tienes cuenta? Registrate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Access Denied Section -->
+    <div class="login-container hidden" id="accessDeniedSection">
+        <div class="login-card">
+            <div class="login-icon" style="background: var(--red-500);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+            </div>
+            <h2 class="login-title">Acceso Denegado</h2>
+            <p class="login-subtitle">Tu cuenta no tiene permisos de administrador.</p>
+            <button type="button" class="btn btn-secondary btn-full" id="logoutDenied">Cerrar sesion</button>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <main class="main hidden" id="adminPanel">
+        <div class="admin-header">
+            <div class="admin-title-section">
+                <div class="admin-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <div class="admin-title">
+                    <h1>Panel de Administracion</h1>
+                    <p>Gestiona jugadores, series y partidos</p>
+                </div>
+            </div>
+            <div class="admin-actions">
+                <button class="btn btn-secondary" id="logoutBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Cerrar sesion
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="players">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Jugadores
+            </button>
+            <button class="tab-btn" data-tab="series">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                Series
+            </button>
+            <button class="tab-btn" data-tab="groups">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Grupos
+            </button>
+            <button class="tab-btn" data-tab="matches">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="6"/>
+                    <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                </svg>
+                Partidos
+            </button>
+        </div>
+
+        <!-- Tab Content: Players -->
+        <div class="tab-content active" id="tab-players">
+            <div class="section-header">
+                <div class="search-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text" id="playerSearch" placeholder="Buscar jugadores...">
+                </div>
+                <button class="btn btn-primary" id="addPlayerBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Nuevo Jugador
+                </button>
+            </div>
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Jugador</th>
+                            <th class="hidden md:table-cell">Contacto</th>
+                            <th>Puntos ATP</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playersTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted" style="padding: 2rem;">
+                                <div class="spinner"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab Content: Series -->
+        <div class="tab-content" id="tab-series">
+            <div class="section-header">
+                <h3>Series</h3>
+                <button class="btn btn-primary" id="addSeriesBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Nueva Serie
+                </button>
+            </div>
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Fecha inicio</th>
+                            <th>Fecha fin</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="seriesTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted" style="padding: 2rem;">
+                                <div class="spinner"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab Content: Groups -->
+        <div class="tab-content" id="tab-groups">
+            <div class="section-header">
+                <select class="form-input form-select" id="groupSeriesSelect" style="width: auto; min-width: 200px;">
+                    <option value="">Selecciona una serie</option>
+                </select>
+                <button class="btn btn-primary" id="addGroupBtn" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Nuevo Grupo
+                </button>
+            </div>
+            <div id="groupsContainer">
+                <div class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                    </svg>
+                    <p>Selecciona una serie para ver y gestionar sus grupos.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Matches -->
+        <div class="tab-content" id="tab-matches">
+            <div class="section-header">
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <select class="form-input form-select" id="matchSeriesSelect" style="width: auto; min-width: 180px;">
+                        <option value="">Selecciona una serie</option>
+                    </select>
+                    <select class="form-input form-select" id="matchGroupSelect" style="width: auto; min-width: 180px;" disabled>
+                        <option value="">Selecciona un grupo</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="addMatchBtn" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Nuevo Partido
+                </button>
+            </div>
+            <div id="matchesContainer">
+                <div class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="6"/>
+                        <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                    </svg>
+                    <p>Selecciona una serie y un grupo para ver y gestionar los partidos.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Player Modal -->
+    <div class="modal-overlay" id="playerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="playerModalTitle">Nuevo Jugador</h3>
+                <button class="modal-close" onclick="closeModal('playerModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="playerForm">
+                    <input type="hidden" id="playerId">
+                    <div class="form-group">
+                        <label class="form-label" for="playerName">Nombre completo *</label>
+                        <input type="text" id="playerName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="playerEmail">Email</label>
+                        <input type="email" id="playerEmail" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="playerPhone">Telefono</label>
+                        <input type="tel" id="playerPhone" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="playerPoints">Puntos ATP</label>
+                        <input type="number" id="playerPoints" class="form-input" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-checkbox">
+                            <input type="checkbox" id="playerActive" checked>
+                            <span>Jugador activo</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('playerModal')">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="savePlayerBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Series Modal -->
+    <div class="modal-overlay" id="seriesModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="seriesModalTitle">Nueva Serie</h3>
+                <button class="modal-close" onclick="closeModal('seriesModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="seriesForm">
+                    <input type="hidden" id="seriesId">
+                    <div class="form-group">
+                        <label class="form-label" for="seriesName">Nombre *</label>
+                        <input type="text" id="seriesName" class="form-input" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="seriesStart">Fecha inicio *</label>
+                            <input type="date" id="seriesStart" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="seriesEnd">Fecha fin *</label>
+                            <input type="date" id="seriesEnd" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-checkbox">
+                            <input type="checkbox" id="seriesActive">
+                            <span>Serie activa</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('seriesModal')">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveSeriesBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Modal -->
+    <div class="modal-overlay" id="groupModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="groupModalTitle">Nuevo Grupo</h3>
+                <button class="modal-close" onclick="closeModal('groupModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="groupForm">
+                    <input type="hidden" id="groupId">
+                    <div class="form-group">
+                        <label class="form-label" for="groupName">Nombre *</label>
+                        <input type="text" id="groupName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="groupLevel">Nivel (posicion)</label>
+                        <input type="number" id="groupLevel" class="form-input" min="1" value="1">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('groupModal')">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveGroupBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Player to Group Modal -->
+    <div class="modal-overlay" id="addPlayerToGroupModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Anadir Jugador al Grupo</h3>
+                <button class="modal-close" onclick="closeModal('addPlayerToGroupModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="playerToAdd">Selecciona un jugador</label>
+                    <select id="playerToAdd" class="form-input form-select"></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addPlayerToGroupModal')">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmAddPlayerBtn">Anadir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Match Modal -->
+    <div class="modal-overlay" id="matchModal">
+        <div class="modal" style="max-width: 32rem;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="matchModalTitle">Nuevo Partido</h3>
+                <button class="modal-close" onclick="closeModal('matchModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="matchForm">
+                    <input type="hidden" id="matchId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="matchPlayer1">Jugador 1 *</label>
+                            <select id="matchPlayer1" class="form-input form-select" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="matchPlayer2">Jugador 2 *</label>
+                            <select id="matchPlayer2" class="form-input form-select" required></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="matchDate">Fecha del partido</label>
+                        <input type="date" id="matchDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Resultado</label>
+                        <div class="score-grid">
+                            <div>
+                                <p class="score-label">Set 1</p>
+                                <div class="score-set">
+                                    <input type="number" id="scoreP1S1" class="form-input score-input" min="0" max="7" placeholder="P1">
+                                    <input type="number" id="scoreP2S1" class="form-input score-input" min="0" max="7" placeholder="P2">
+                                </div>
+                            </div>
+                            <div>
+                                <p class="score-label">Set 2</p>
+                                <div class="score-set">
+                                    <input type="number" id="scoreP1S2" class="form-input score-input" min="0" max="7" placeholder="P1">
+                                    <input type="number" id="scoreP2S2" class="form-input score-input" min="0" max="7" placeholder="P2">
+                                </div>
+                            </div>
+                            <div>
+                                <p class="score-label">Set 3</p>
+                                <div class="score-set">
+                                    <input type="number" id="scoreP1S3" class="form-input score-input" min="0" max="10" placeholder="P1">
+                                    <input type="number" id="scoreP2S3" class="form-input score-input" min="0" max="10" placeholder="P2">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('matchModal')">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveMatchBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="max-width: 24rem;">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirmar eliminacion</h3>
+                <button class="modal-close" onclick="closeModal('deleteModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage">Esta accion eliminara permanentemente este elemento y todos sus datos asociados.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Ranking Tenis Somontes 2025-26 - Organizado por CPV Total Tenis</p>
+        <p class="footer-contact">ranking@cpvtotaltenis.com - 609 018 334</p>
+    </footer>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
