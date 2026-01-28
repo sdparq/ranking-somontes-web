@@ -2050,3 +2050,142 @@ input, select, textarea {
     padding-top: 1rem;
     border-top: 1px solid var(--border-color);
 }
+
+/* ========================================
+   DIRECTORY LOGIN SCREEN
+   ======================================== */
+.directory-login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+    padding: 2rem 1rem;
+}
+
+.directory-login .login-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 2.5rem;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    animation: scaleIn 0.3s ease;
+}
+
+.directory-login .login-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--emerald-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.directory-login h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.directory-login .text-muted {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+}
+
+.directory-login .form-group {
+    text-align: left;
+    margin-bottom: 1rem;
+}
+
+.directory-login .form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.directory-login .form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    outline: none;
+    transition: all var(--transition-base);
+}
+
+.directory-login .form-control:focus {
+    border-color: var(--emerald-500);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.directory-login .form-control::placeholder {
+    color: var(--text-muted);
+}
+
+.directory-login .btn-block {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* Group badge for player cards */
+.group-badge {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--emerald-400);
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+}
+
+.player-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+}
+
+.player-card-header .player-card-name {
+    margin-bottom: 0;
+}
+
+/* Filter select dropdown */
+.filter-select {
+    min-width: 180px;
+    padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    outline: none;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+}
+
+.filter-select:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.filter-select:focus {
+    border-color: var(--emerald-500);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.filter-select option {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
