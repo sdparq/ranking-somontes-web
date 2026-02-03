@@ -534,3 +534,224 @@ function getCoefficient(levelIndex) {
     };
     return coefficients[levelIndex] || 50;
 }
+
+// ========================================
+// GENERATE NEXT SERIES
+// ========================================
+
+async function generateSeriesFromSource(sourceSeriesId, targetNumber, startDate, endDate, makeVisible) {
+    try {
+        // 1. Get source series groups and players
+        const { data: groups, error: groupsError } = await supabaseClient
+            .from('groups')
+            .select('*')
+            .eq('series_id', sourceSeriesId)
+            .order('level_index');
+
+        if (groupsError) throw groupsError;
+
+        const totalGroups = groups.length;
+
+        // 2. Get all group players with their stats
+        const groupIds = groups.map(g => g.id);
+        const { data: allGroupPlayers, error: gpError } = await supabaseClient
+            .from('group_players')
+            .select('*, players:player_id(id, name)')
+            .in('group_id', groupIds);
+
+        if (gpError) throw gpError;
+
+        // 3. Classify each group and calculate new levels
+        const playerNewLevels = [];
+
+        for (const group of groups) {
+            const groupPlayers = allGroupPlayers.filter(gp => gp.group_id === group.id);
+            if (groupPlayers.length === 0) continue;
+
+            // Sort by points (simple classification, ties resolved by set diff, then random)
+            const classified = [...groupPlayers].sort((a, b) => {
+                if ((b.group_points || 0) !== (a.group_points || 0)) {
+                    return (b.group_points || 0) - (a.group_points || 0);
+                }
+                const aSetDiff = (a.sets_won || 0) - (a.sets_lost || 0);
+                const bSetDiff = (b.sets_won || 0) - (b.sets_lost || 0);
+                if (bSetDiff !== aSetDiff) return bSetDiff - aSetDiff;
+                return Math.random() - 0.5;
+            });
+
+            const groupSize = classified.length;
+
+            classified.forEach((player, idx) => {
+                const position = idx + 1;
+                const movement = getMovementForPosition(group.level_index, position, totalGroups, groupSize);
+                let newLevel = group.level_index + movement;
+                newLevel = Math.max(1, Math.min(totalGroups, newLevel));
+
+                playerNewLevels.push({
+                    playerId: player.player_id,
+                    playerName: player.players?.name || 'N/A',
+                    oldLevel: group.level_index,
+                    newLevel: newLevel,
+                    position: position,
+                    points: player.group_points || 0
+                });
+            });
+        }
+
+        // 4. Calculate group sizes and rebalance
+        const totalPlayers = playerNewLevels.length;
+        const groupsWithFive = totalPlayers - (totalGroups * 4);
+
+        const levelAssignments = {};
+        for (let i = 1; i <= totalGroups; i++) levelAssignments[i] = [];
+        playerNewLevels.forEach(p => levelAssignments[p.newLevel].push(p));
+
+        // Sort each group by merit
+        for (let i = 1; i <= totalGroups; i++) {
+            levelAssignments[i].sort((a, b) => {
+                if (a.position !== b.position) return a.position - b.position;
+                return a.oldLevel - b.oldLevel;
+            });
+        }
+
+        // Set target sizes (last groups get 5 players)
+        const groupSizeTarget = {};
+        for (let i = 1; i <= totalGroups; i++) {
+            groupSizeTarget[i] = i > (totalGroups - groupsWithFive) ? 5 : 4;
+        }
+
+        // Rebalance
+        for (let iter = 0; iter < 100; iter++) {
+            let moved = false;
+
+            for (let level = 1; level <= totalGroups; level++) {
+                while (levelAssignments[level].length > groupSizeTarget[level]) {
+                    levelAssignments[level].sort((a, b) => {
+                        if (a.position !== b.position) return a.position - b.position;
+                        return a.oldLevel - b.oldLevel;
+                    });
+                    const playerToMove = levelAssignments[level].pop();
+
+                    let found = false;
+                    for (let targetLevel = level + 1; targetLevel <= totalGroups && !found; targetLevel++) {
+                        if (levelAssignments[targetLevel].length < groupSizeTarget[targetLevel]) {
+                            levelAssignments[targetLevel].push(playerToMove);
+                            playerToMove.newLevel = targetLevel;
+                            found = true;
+                            moved = true;
+                        }
+                    }
+
+                    if (!found) {
+                        levelAssignments[level].push(playerToMove);
+                        break;
+                    }
+                }
+            }
+
+            let balanced = true;
+            for (let i = 1; i <= totalGroups; i++) {
+                if (levelAssignments[i].length !== groupSizeTarget[i]) {
+                    balanced = false;
+                    break;
+                }
+            }
+
+            if (balanced || !moved) break;
+        }
+
+        // 5. Check if target series already exists and delete it
+        const { data: existingSeries } = await supabaseClient
+            .from('series')
+            .select('id')
+            .eq('name', `Serie ${targetNumber}`)
+            .single();
+
+        if (existingSeries) {
+            await supabaseClient.from('series').delete().eq('id', existingSeries.id);
+        }
+
+        // 6. Create new series
+        const { data: newSeries, error: seriesError } = await supabaseClient
+            .from('series')
+            .insert([{
+                name: `Serie ${targetNumber}`,
+                start_date: startDate,
+                end_date: endDate,
+                is_active: makeVisible,
+                status: 'pending'
+            }])
+            .select()
+            .single();
+
+        if (seriesError) throw seriesError;
+
+        // 7. Create groups and assign players
+        let assignedCount = 0;
+        for (let i = 1; i <= totalGroups; i++) {
+            const { data: newGroup, error: groupError } = await supabaseClient
+                .from('groups')
+                .insert([{ series_id: newSeries.id, name: `Grupo ${i}`, level_index: i }])
+                .select()
+                .single();
+
+            if (groupError) throw groupError;
+
+            for (const player of levelAssignments[i]) {
+                await supabaseClient.from('group_players').insert([{
+                    group_id: newGroup.id,
+                    player_id: player.playerId,
+                    matches_played: 0, matches_won: 0, matches_lost: 0,
+                    sets_won: 0, sets_lost: 0, games_won: 0, games_lost: 0, group_points: 0
+                }]);
+                assignedCount++;
+            }
+        }
+
+        return { success: true, playerCount: assignedCount };
+
+    } catch (error) {
+        console.error('Error generating series:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// Movement rules for series generation
+function getMovementForPosition(groupLevel, position, totalGroups, groupSize) {
+    const isFirst = groupLevel === 1;
+    const isSecond = groupLevel === 2;
+    const isLast = groupLevel === totalGroups;
+    const isPenultimate = groupLevel === totalGroups - 1;
+
+    if (groupSize === 5 && position === 3) return 0;
+
+    if (isFirst) {
+        if (position === 1) return 0;
+        if (position === 2 || position === 3) return 1;
+        return 2;
+    }
+
+    if (isSecond) {
+        if (position === 1 || position === 2) return -1;
+        if (position === 3) return 1;
+        return 2;
+    }
+
+    if (isLast) {
+        if (position === 1) return -2;
+        if (position === 2 || position === 3) return -1;
+        return 0;
+    }
+
+    if (isPenultimate) {
+        if (position === 1) return -2;
+        if (position === 2) return -1;
+        if (position === 3) return 1;
+        return Math.min(1, totalGroups - groupLevel);
+    }
+
+    if (position === 1) return -2;
+    if (position === 2) return -1;
+    if (position === 3) return 1;
+    return 2;
+}

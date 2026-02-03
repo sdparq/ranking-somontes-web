@@ -205,6 +205,9 @@ function renderPlayersTable(players) {
 }
 
 function initModals() {
+    // Initialize generate series modal
+    initGenerateSeriesModal();
+
     // Player search
     document.getElementById('playerSearch').addEventListener('input', debounce((e) => {
         const term = e.target.value.toLowerCase();
@@ -886,4 +889,78 @@ function confirmDeleteMatch(matchId) {
         }
     };
     openModal('deleteModal');
+}
+
+// ========================================
+// GENERATE NEXT SERIES
+// ========================================
+
+function initGenerateSeriesModal() {
+    document.getElementById('generateNextSeriesBtn').addEventListener('click', openGenerateSeriesModal);
+    document.getElementById('confirmGenerateSeriesBtn').addEventListener('click', generateNextSeries);
+}
+
+async function openGenerateSeriesModal() {
+    const select = document.getElementById('sourceSeriesSelect');
+
+    // Populate with visible series (active ones)
+    const visibleSeries = allSeries.filter(s => s.is_active);
+    select.innerHTML = visibleSeries.map(s => `<option value="${s.id}" data-name="${s.name}">${s.name}</option>`).join('');
+
+    // Set default dates (1 month from today)
+    const today = new Date();
+    const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    const endDate = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate() + 1);
+
+    document.getElementById('newSeriesStart').value = startDate.toISOString().split('T')[0];
+    document.getElementById('newSeriesEnd').value = endDate.toISOString().split('T')[0];
+    document.getElementById('makeNewSeriesVisible').checked = false;
+
+    document.getElementById('generateSeriesStatus').classList.add('hidden');
+    document.getElementById('confirmGenerateSeriesBtn').disabled = false;
+
+    openModal('generateSeriesModal');
+}
+
+async function generateNextSeries() {
+    const sourceSeriesId = document.getElementById('sourceSeriesSelect').value;
+    const sourceName = document.getElementById('sourceSeriesSelect').selectedOptions[0]?.dataset.name || '';
+    const startDate = document.getElementById('newSeriesStart').value;
+    const endDate = document.getElementById('newSeriesEnd').value;
+    const makeVisible = document.getElementById('makeNewSeriesVisible').checked;
+
+    if (!sourceSeriesId || !startDate || !endDate) {
+        showToast('Error', 'Completa todos los campos.', 'error');
+        return;
+    }
+
+    // Extract series number from name (e.g., "Serie 3" -> 3)
+    const sourceNumber = parseInt(sourceName.match(/\d+/)?.[0]) || 0;
+    const targetNumber = sourceNumber + 1;
+
+    document.getElementById('generateSeriesStatus').classList.remove('hidden');
+    document.getElementById('generateSeriesMessage').textContent = 'Procesando clasificaciones...';
+    document.getElementById('confirmGenerateSeriesBtn').disabled = true;
+
+    try {
+        // Call the backend generation function
+        const result = await generateSeriesFromSource(sourceSeriesId, targetNumber, startDate, endDate, makeVisible);
+
+        if (result.success) {
+            document.getElementById('generateSeriesMessage').textContent = '¡Serie generada correctamente!';
+            showToast('Serie generada', `Serie ${targetNumber} creada con ${result.playerCount} jugadores.`);
+
+            setTimeout(() => {
+                closeModal('generateSeriesModal');
+                loadSeriesTable();
+                loadSeriesSelects();
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'Error desconocido');
+        }
+    } catch (error) {
+        document.getElementById('generateSeriesStatus').classList.add('hidden');
+        document.getElementById('confirmGenerateSeriesBtn').disabled = false;
+        showToast('Error', error.message || 'No se pudo generar la serie.', 'error');
+    }
 }

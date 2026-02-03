@@ -261,16 +261,35 @@ async function main() {
                 playerId: player.player_id,
                 playerName: player.players?.name || 'N/A',
                 oldLevel: group.level_index,
-                newLevel: newLevel
+                newLevel: newLevel,
+                position: player.position, // 1-5, posición en grupo original
+                points: player.group_points || 0
             });
         }
         console.log('');
     }
 
     // Agrupar por nuevo nivel inicial
+    // IMPORTANTE: Ordenar por mérito (oldLevel asc, luego por puntos desc implícito en el orden de inserción)
     const levelAssignments = {};
     for (let i = 1; i <= totalGroups; i++) levelAssignments[i] = [];
-    playerNewLevels.forEach(p => levelAssignments[p.newLevel].push(p));
+
+    // Ordenar playerNewLevels por mérito antes de asignar
+    // Menor oldLevel = mejor jugador (viene de grupo más alto)
+    // Si mismo oldLevel, el orden de inserción ya respeta la clasificación dentro del grupo
+    playerNewLevels.forEach(p => {
+        levelAssignments[p.newLevel].push(p);
+    });
+
+    // Ordenar cada grupo por mérito:
+    // 1. Mejor posición primero (1º > 2º > 3º > 4º > 5º)
+    // 2. Si misma posición, de grupo más alto primero (menor oldLevel)
+    for (let i = 1; i <= totalGroups; i++) {
+        levelAssignments[i].sort((a, b) => {
+            if (a.position !== b.position) return a.position - b.position;
+            return a.oldLevel - b.oldLevel;
+        });
+    }
 
     console.log('=== REBALANCEO DE GRUPOS ===\n');
 
@@ -298,7 +317,8 @@ async function main() {
         groupSizeTarget[i] = i > (totalGroups - groupsWithFive) ? 5 : 4;
     }
 
-    // Mover jugadores de grupos con exceso a grupos con déficit
+    // NUEVO ALGORITMO DE REBALANCEO que respeta el mérito deportivo
+    // Mover solo a los jugadores de PEOR mérito (mayor oldLevel) de cada grupo
     let iterations = 0;
     const maxIterations = 500;
 
@@ -306,32 +326,40 @@ async function main() {
         iterations++;
         let moved = false;
 
-        // Buscar grupo con exceso y grupo con déficit
+        // Buscar grupo con exceso
         for (let level = 1; level <= totalGroups; level++) {
             const target = groupSizeTarget[level];
 
             // Si tiene más jugadores de los que debería
             while (levelAssignments[level].length > target) {
-                const playerToMove = levelAssignments[level].pop();
+                // Ordenar por mérito: mejor posición primero, luego mejor grupo
+                // Sacar al de PEOR mérito (último = peor posición, o mismo pos pero grupo más bajo)
+                levelAssignments[level].sort((a, b) => {
+                    if (a.position !== b.position) return a.position - b.position;
+                    return a.oldLevel - b.oldLevel;
+                });
+                const playerToMove = levelAssignments[level].pop(); // El de peor mérito
 
-                // Buscar el grupo más cercano que necesite jugadores
+                // Buscar el grupo más cercano HACIA ABAJO que necesite jugadores
                 let found = false;
-                for (let dist = 1; dist < totalGroups && !found; dist++) {
-                    // Intentar hacia abajo primero
-                    if (level + dist <= totalGroups &&
-                        levelAssignments[level + dist].length < groupSizeTarget[level + dist]) {
-                        levelAssignments[level + dist].push(playerToMove);
-                        playerToMove.newLevel = level + dist;
+                for (let targetLevel = level + 1; targetLevel <= totalGroups && !found; targetLevel++) {
+                    if (levelAssignments[targetLevel].length < groupSizeTarget[targetLevel]) {
+                        levelAssignments[targetLevel].push(playerToMove);
+                        playerToMove.newLevel = targetLevel;
                         found = true;
                         moved = true;
                     }
-                    // Luego hacia arriba
-                    else if (level - dist >= 1 &&
-                        levelAssignments[level - dist].length < groupSizeTarget[level - dist]) {
-                        levelAssignments[level - dist].push(playerToMove);
-                        playerToMove.newLevel = level - dist;
-                        found = true;
-                        moved = true;
+                }
+
+                // Si no hay espacio abajo, buscar arriba (pero esto no debería pasar normalmente)
+                if (!found) {
+                    for (let targetLevel = level - 1; targetLevel >= 1 && !found; targetLevel--) {
+                        if (levelAssignments[targetLevel].length < groupSizeTarget[targetLevel]) {
+                            levelAssignments[targetLevel].push(playerToMove);
+                            playerToMove.newLevel = targetLevel;
+                            found = true;
+                            moved = true;
+                        }
                     }
                 }
 
@@ -340,6 +368,31 @@ async function main() {
                     levelAssignments[level].push(playerToMove);
                     break;
                 }
+            }
+        }
+
+        // Rellenar grupos con déficit tomando del grupo inferior
+        for (let level = totalGroups; level >= 1; level--) {
+            const target = groupSizeTarget[level];
+
+            while (levelAssignments[level].length < target) {
+                // Buscar en el grupo inferior al que le sobre
+                let found = false;
+                for (let sourceLevel = level + 1; sourceLevel <= totalGroups && !found; sourceLevel++) {
+                    if (levelAssignments[sourceLevel].length > groupSizeTarget[sourceLevel]) {
+                        // Ordenar por mérito y tomar al MEJOR (primero = mejor posición, mejor grupo)
+                        levelAssignments[sourceLevel].sort((a, b) => {
+                            if (a.position !== b.position) return a.position - b.position;
+                            return a.oldLevel - b.oldLevel;
+                        });
+                        const playerToMove = levelAssignments[sourceLevel].shift(); // El de mejor mérito sube
+                        levelAssignments[level].push(playerToMove);
+                        playerToMove.newLevel = level;
+                        found = true;
+                    }
+                }
+
+                if (!found) break;
             }
         }
 
