@@ -6,8 +6,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Admin credentials
-const ADMIN_EMAIL = 'ranking@cpvtotaltenis.com';
-const ADMIN_PASSWORD = 'cpvransom26';
+const ADMIN_EMAIL = 'santiagodepablo.arquitectura@gmail.com';
+const ADMIN_PASSWORD = 'afLjoC4x';
 
 const nuevosPartidos = {
     "2": [
