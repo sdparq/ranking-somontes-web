@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://auquetynmfwwpxmkicne.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1cXVldHlubWZ3d3B4bWtpY25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5MjIzMDgsImV4cCI6MjA4NDQ5ODMwOH0.ErPTRVft3j7UKYBu6XoVe1B_Ee5o1SH_y8Gu9zbCAOI';
+const SUPABASE_URL = 'https://hgpoanynlpgtcubmuddi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhncG9hbnlubHBndGN1Ym11ZGRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MTYwNjcsImV4cCI6MjA4NTE5MjA2N30.YQBPEvgjoyCSG47S8YtdnnQHwNjqZrcF_WGMT-gCadQ';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Admin credentials
-const ADMIN_EMAIL = 'santiagodepablo.arquitectura@gmail.com';
-const ADMIN_PASSWORD = 'afLjoC4x';
+const ADMIN_EMAIL = 'ranking@cpvtotaltenis.com';
+const ADMIN_PASSWORD = 'cpvransom26';
 
 const nuevosPartidos = {
     "2": [

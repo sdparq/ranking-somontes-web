@@ -135,8 +135,20 @@ async function deletePlayer(id) {
     if (error) throw error;
 }
 
-// Series
+// Series - Para usuarios públicos (solo series visibles)
 async function fetchSeries() {
+    const { data, error } = await supabaseClient
+        .from('series')
+        .select('*')
+        .eq('is_active', true)  // Solo series activas/visibles
+        .order('start_date', { ascending: false });
+
+    if (error) throw error;
+    return data;
+}
+
+// Series - Para admin (todas las series, incluyendo ocultas)
+async function fetchAllSeries() {
     const { data, error } = await supabaseClient
         .from('series')
         .select('*')

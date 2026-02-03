@@ -2189,3 +2189,27 @@ input, select, textarea {
     background: var(--bg-primary);
     color: var(--text-primary);
 }
+
+/* Hidden/Inactive Series Styles */
+.row-hidden {
+    background: rgba(255, 193, 7, 0.05);
+    border-left: 3px solid var(--amber-500);
+}
+
+.badge-hidden {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 0.15rem 0.4rem;
+    background: var(--amber-500);
+    color: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    margin-left: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.inactive {
+    background: rgba(255, 193, 7, 0.2);
+    color: var(--amber-500);
+}
