@@ -13,44 +13,31 @@ const ADMIN_PASSWORD = 'cpvransom26';
 // CONFIGURACIÓN
 // ========================================
 
-// Número de serie a generar (cambiar según necesidad)
-const SOURCE_SERIES_NUMBER = 2;  // Serie de origen (cuyos resultados usamos)
-const TARGET_SERIES_NUMBER = 3;  // Serie a generar
-
-// Fechas de la nueva serie (ajustar según calendario)
-const NEW_SERIES_START_DATE = '2025-02-15';
-const NEW_SERIES_END_DATE = '2025-03-15';
-
-// Si es true, regenerará la serie aunque ya exista (eliminando la anterior)
+const SOURCE_SERIES_NUMBER = 4;
+const TARGET_SERIES_NUMBER = 5;
+const NEW_SERIES_START_DATE = '2025-04-15';
+const NEW_SERIES_END_DATE = '2025-05-15';
 const FORCE_REGENERATE = true;
+
+// Tamaño estándar de grupos
+const STANDARD_GROUP_SIZE = 4;
 
 // ========================================
 // LÓGICA DE DESEMPATES
 // ========================================
 
-/**
- * Obtiene los partidos entre jugadores específicos de un grupo
- */
 async function getHeadToHeadMatches(groupId, playerIds) {
     const { data: matches, error } = await supabase
         .from('matches')
         .select('*')
         .eq('group_id', groupId);
 
-    if (error) {
-        console.error('Error fetching matches:', error);
-        return [];
-    }
-
-    // Filtrar solo partidos entre los jugadores empatados
+    if (error) return [];
     return matches.filter(m =>
         playerIds.includes(m.player1_id) && playerIds.includes(m.player2_id)
     );
 }
 
-/**
- * Calcula estadísticas de enfrentamientos directos entre jugadores empatados
- */
 function calculateHeadToHeadStats(matches, playerId) {
     let setsWon = 0, setsLost = 0;
     let gamesWon = 0, gamesLost = 0;
@@ -58,188 +45,76 @@ function calculateHeadToHeadStats(matches, playerId) {
     matches.forEach(match => {
         const isPlayer1 = match.player1_id === playerId;
 
-        // Set 1
-        if (match.score_p1_set1 !== null && match.score_p2_set1 !== null) {
-            const p1Games = match.score_p1_set1;
-            const p2Games = match.score_p2_set1;
-
-            if (isPlayer1) {
-                gamesWon += p1Games;
-                gamesLost += p2Games;
-                if (p1Games > p2Games) setsWon++; else setsLost++;
-            } else {
-                gamesWon += p2Games;
-                gamesLost += p1Games;
-                if (p2Games > p1Games) setsWon++; else setsLost++;
+        [[match.score_p1_set1, match.score_p2_set1],
+         [match.score_p1_set2, match.score_p2_set2],
+         [match.score_p1_set3, match.score_p2_set3]].forEach(([p1, p2]) => {
+            if (p1 !== null && p2 !== null) {
+                if (isPlayer1) {
+                    gamesWon += p1; gamesLost += p2;
+                    if (p1 > p2) setsWon++; else setsLost++;
+                } else {
+                    gamesWon += p2; gamesLost += p1;
+                    if (p2 > p1) setsWon++; else setsLost++;
+                }
             }
-        }
-
-        // Set 2
-        if (match.score_p1_set2 !== null && match.score_p2_set2 !== null) {
-            const p1Games = match.score_p1_set2;
-            const p2Games = match.score_p2_set2;
-
-            if (isPlayer1) {
-                gamesWon += p1Games;
-                gamesLost += p2Games;
-                if (p1Games > p2Games) setsWon++; else setsLost++;
-            } else {
-                gamesWon += p2Games;
-                gamesLost += p1Games;
-                if (p2Games > p1Games) setsWon++; else setsLost++;
-            }
-        }
-
-        // Set 3 (super tie-break)
-        if (match.score_p1_set3 !== null && match.score_p2_set3 !== null) {
-            const p1Games = match.score_p1_set3;
-            const p2Games = match.score_p2_set3;
-
-            if (isPlayer1) {
-                gamesWon += p1Games;
-                gamesLost += p2Games;
-                if (p1Games > p2Games) setsWon++; else setsLost++;
-            } else {
-                gamesWon += p2Games;
-                gamesLost += p1Games;
-                if (p2Games > p1Games) setsWon++; else setsLost++;
-            }
-        }
+        });
     });
 
-    return {
-        setDiff: setsWon - setsLost,
-        gameDiff: gamesWon - gamesLost,
-        setsWon,
-        setsLost,
-        gamesWon,
-        gamesLost
-    };
+    return { setDiff: setsWon - setsLost, gameDiff: gamesWon - gamesLost };
 }
 
-/**
- * Resuelve empate entre 2 jugadores (el que ganó al otro queda delante)
- */
 async function resolveTwoWayTie(groupId, player1, player2) {
     const matches = await getHeadToHeadMatches(groupId, [player1.player_id, player2.player_id]);
-
     const directMatch = matches.find(m =>
         (m.player1_id === player1.player_id && m.player2_id === player2.player_id) ||
         (m.player1_id === player2.player_id && m.player2_id === player1.player_id)
     );
 
     if (directMatch && directMatch.winner_id) {
-        if (directMatch.winner_id === player1.player_id) {
-            return [player1, player2];
-        } else {
-            return [player2, player1];
-        }
+        return directMatch.winner_id === player1.player_id ? [player1, player2] : [player2, player1];
     }
 
-    // Si no hay enfrentamiento directo, usar diferencia de sets/juegos general
-    const p1SetDiff = player1.sets_won - player1.sets_lost;
-    const p2SetDiff = player2.sets_won - player2.sets_lost;
+    // Diferencia de sets general
+    const p1SetDiff = (player1.sets_won || 0) - (player1.sets_lost || 0);
+    const p2SetDiff = (player2.sets_won || 0) - (player2.sets_lost || 0);
+    if (p1SetDiff !== p2SetDiff) return p1SetDiff > p2SetDiff ? [player1, player2] : [player2, player1];
 
-    if (p1SetDiff !== p2SetDiff) {
-        return p1SetDiff > p2SetDiff ? [player1, player2] : [player2, player1];
-    }
+    // Diferencia de juegos
+    const p1GameDiff = (player1.games_won || 0) - (player1.games_lost || 0);
+    const p2GameDiff = (player2.games_won || 0) - (player2.games_lost || 0);
+    if (p1GameDiff !== p2GameDiff) return p1GameDiff > p2GameDiff ? [player1, player2] : [player2, player1];
 
-    const p1GameDiff = player1.games_won - player1.games_lost;
-    const p2GameDiff = player2.games_won - player2.games_lost;
-
-    if (p1GameDiff !== p2GameDiff) {
-        return p1GameDiff > p2GameDiff ? [player1, player2] : [player2, player1];
-    }
-
-    // Sorteo (orden aleatorio)
-    console.log(`    ⚠️ Sorteo entre ${player1.playerName} y ${player2.playerName}`);
+    // Sorteo
     return Math.random() > 0.5 ? [player1, player2] : [player2, player1];
 }
 
-/**
- * Resuelve empate entre 3 o más jugadores
- */
 async function resolveMultiWayTie(groupId, tiedPlayers) {
     const playerIds = tiedPlayers.map(p => p.player_id);
     const h2hMatches = await getHeadToHeadMatches(groupId, playerIds);
 
-    // Calcular estadísticas de enfrentamientos directos
     const playersWithH2H = tiedPlayers.map(p => {
-        const h2hStats = calculateHeadToHeadStats(h2hMatches, p.player_id);
-        return {
-            ...p,
-            h2hSetDiff: h2hStats.setDiff,
-            h2hGameDiff: h2hStats.gameDiff
-        };
+        const stats = calculateHeadToHeadStats(h2hMatches, p.player_id);
+        return { ...p, h2hSetDiff: stats.setDiff, h2hGameDiff: stats.gameDiff };
     });
 
-    // Paso a: Ordenar por diferencia de sets en enfrentamientos directos
-    playersWithH2H.sort((a, b) => b.h2hSetDiff - a.h2hSetDiff);
-
-    // Verificar si hay empate aún
-    const setDiffs = [...new Set(playersWithH2H.map(p => p.h2hSetDiff))];
-    if (setDiffs.length === playersWithH2H.length) {
-        return playersWithH2H; // Todos diferentes, resuelto
-    }
-
-    // Paso b: Ordenar por diferencia de juegos en enfrentamientos directos
     playersWithH2H.sort((a, b) => {
         if (b.h2hSetDiff !== a.h2hSetDiff) return b.h2hSetDiff - a.h2hSetDiff;
-        return b.h2hGameDiff - a.h2hGameDiff;
-    });
-
-    const gameDiffs = playersWithH2H.map(p => `${p.h2hSetDiff}-${p.h2hGameDiff}`);
-    const uniqueDiffs = [...new Set(gameDiffs)];
-    if (uniqueDiffs.length === playersWithH2H.length) {
-        return playersWithH2H; // Todos diferentes, resuelto
-    }
-
-    // Paso c: Sorteo para los que sigan empatados
-    console.log(`    ⚠️ Sorteo necesario para empate múltiple`);
-
-    // Agrupar por empate y hacer sorteo dentro de cada grupo
-    const groups = {};
-    playersWithH2H.forEach(p => {
-        const key = `${p.h2hSetDiff}-${p.h2hGameDiff}`;
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(p);
-    });
-
-    const result = [];
-    Object.values(groups).forEach(group => {
-        // Shuffle (Fisher-Yates)
-        for (let i = group.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [group[i], group[j]] = [group[j], group[i]];
-        }
-        result.push(...group);
-    });
-
-    // Reordenar manteniendo el orden general
-    return playersWithH2H.sort((a, b) => {
-        if (b.h2hSetDiff !== a.h2hSetDiff) return b.h2hSetDiff - a.h2hSetDiff;
         if (b.h2hGameDiff !== a.h2hGameDiff) return b.h2hGameDiff - a.h2hGameDiff;
-        return result.indexOf(a) - result.indexOf(b);
+        return Math.random() - 0.5; // Sorteo
     });
+
+    return playersWithH2H;
 }
 
-/**
- * Clasifica jugadores de un grupo aplicando criterios de desempate
- */
 async function classifyGroup(group, groupPlayers) {
-    // Ordenar inicialmente por puntos
-    let sorted = [...groupPlayers].sort((a, b) => b.group_points - a.group_points);
-
-    // Buscar empates y resolverlos
+    let sorted = [...groupPlayers].sort((a, b) => (b.group_points || 0) - (a.group_points || 0));
     const result = [];
     let i = 0;
 
     while (i < sorted.length) {
-        const currentPoints = sorted[i].group_points;
+        const currentPoints = sorted[i].group_points || 0;
         const tiedPlayers = [];
-
-        // Encontrar todos los jugadores con los mismos puntos
-        while (i < sorted.length && sorted[i].group_points === currentPoints) {
+        while (i < sorted.length && (sorted[i].group_points || 0) === currentPoints) {
             tiedPlayers.push(sorted[i]);
             i++;
         }
@@ -247,344 +122,310 @@ async function classifyGroup(group, groupPlayers) {
         if (tiedPlayers.length === 1) {
             result.push(tiedPlayers[0]);
         } else if (tiedPlayers.length === 2) {
-            const resolved = await resolveTwoWayTie(group.id, tiedPlayers[0], tiedPlayers[1]);
-            result.push(...resolved);
+            result.push(...(await resolveTwoWayTie(group.id, tiedPlayers[0], tiedPlayers[1])));
         } else {
-            const resolved = await resolveMultiWayTie(group.id, tiedPlayers);
-            result.push(...resolved);
+            result.push(...(await resolveMultiWayTie(group.id, tiedPlayers)));
         }
     }
 
-    // Asignar posiciones
-    return result.map((p, idx) => ({
-        ...p,
-        position: idx + 1
-    }));
+    return result.map((p, idx) => ({ ...p, position: idx + 1 }));
 }
 
 // ========================================
-// LÓGICA DE ASCENSOS/DESCENSOS
+// LÓGICA DE ASCENSOS/DESCENSOS - SIMPLIFICADA
 // ========================================
 
 /**
- * Calcula el nuevo grupo para un jugador según su posición
- * @param {number} currentGroup - Índice del grupo actual (1 = primer grupo)
- * @param {number} position - Posición en el grupo (1-4 o 1-5)
- * @param {number} totalGroups - Número total de grupos
- * @param {number} groupSize - Tamaño del grupo (4 o 5)
+ * Asigna movimientos basándose en la posición dentro del grupo.
+ * Los grupos de 4 jugadores: 1º,2º suben/quedan, 3º,4º bajan/quedan
+ * Los grupos de 5 jugadores: 3º se queda en su grupo
  */
-function calculateNewGroup(currentGroup, position, totalGroups, groupSize) {
-    const isFirstGroup = currentGroup === 1;
-    const isSecondGroup = currentGroup === 2;
-    const isLastGroup = currentGroup === totalGroups;
-    const isPenultimateGroup = currentGroup === totalGroups - 1;
+function getMovementForPosition(groupLevel, position, totalGroups, groupSize) {
+    const isFirst = groupLevel === 1;
+    const isSecond = groupLevel === 2;
+    const isLast = groupLevel === totalGroups;
+    const isPenultimate = groupLevel === totalGroups - 1;
 
-    // Grupo de 5 jugadores: el 3º se queda
-    if (groupSize === 5 && position === 3) {
-        return currentGroup;
+    // Para grupos de 5, el 3º se queda
+    if (groupSize === 5 && position === 3) return 0;
+
+    if (isFirst) {
+        // Primer grupo: 1º se queda, 2º-3º bajan 1, 4º baja 2
+        if (position === 1) return 0;
+        if (position === 2 || position === 3) return 1;
+        return 2; // 4º y 5º
     }
 
-    // Primer Grupo
-    if (isFirstGroup) {
-        switch (position) {
-            case 1: return 1;  // Permanece
-            case 2: return 2;  // Baja 1
-            case 3: return 2;  // Baja 1
-            case 4: return 3;  // Baja 2
-            case 5: return 3;  // Baja 2 (si hay 5)
-            default: return currentGroup;
-        }
+    if (isSecond) {
+        // Segundo grupo: 1º-2º suben 1, 3º baja 1, 4º baja 2
+        if (position === 1 || position === 2) return -1;
+        if (position === 3) return 1;
+        return 2; // 4º y 5º
     }
 
-    // Segundo Grupo
-    if (isSecondGroup) {
-        switch (position) {
-            case 1: return 1;  // Sube 1
-            case 2: return 1;  // Sube 1
-            case 3: return 3;  // Baja 1
-            case 4: return 4;  // Baja 2
-            case 5: return 4;  // Baja 2 (si hay 5)
-            default: return currentGroup;
-        }
+    if (isLast) {
+        // Último grupo: 1º sube 2, 2º-3º suben 1, 4º se queda
+        if (position === 1) return -2;
+        if (position === 2 || position === 3) return -1;
+        return 0; // 4º y 5º se quedan
     }
 
-    // Último Grupo (criterio inverso al primero)
-    if (isLastGroup) {
-        switch (position) {
-            case 1: return Math.max(1, totalGroups - 2);  // Sube 2
-            case 2: return Math.max(1, totalGroups - 1);  // Sube 1
-            case 3: return Math.max(1, totalGroups - 1);  // Sube 1
-            case 4: return totalGroups;  // Permanece
-            case 5: return totalGroups;  // Permanece (si hay 5)
-            default: return currentGroup;
-        }
+    if (isPenultimate) {
+        // Penúltimo: 1º-2º suben, 3º-4º bajan/quedan
+        if (position === 1) return -2;
+        if (position === 2) return -1;
+        if (position === 3) return 1;
+        return Math.min(1, totalGroups - groupLevel); // No puede bajar más del último
     }
 
-    // Penúltimo Grupo (criterio inverso al segundo)
-    if (isPenultimateGroup) {
-        switch (position) {
-            case 1: return Math.max(1, totalGroups - 3);  // Sube 2
-            case 2: return Math.max(1, totalGroups - 2);  // Sube 1
-            case 3: return totalGroups;  // Baja 1
-            case 4: return totalGroups;  // Se queda en último (no puede bajar más)
-            case 5: return totalGroups;  // Se queda en último
-            default: return currentGroup;
-        }
-    }
-
-    // Resto de grupos (regla general)
-    switch (position) {
-        case 1: return Math.max(1, currentGroup - 2);  // Sube 2
-        case 2: return Math.max(1, currentGroup - 1);  // Sube 1
-        case 3: return Math.min(totalGroups, currentGroup + 1);  // Baja 1
-        case 4: return Math.min(totalGroups, currentGroup + 2);  // Baja 2
-        case 5: return Math.min(totalGroups, currentGroup + 2);  // Baja 2 (si hay 5)
-        default: return currentGroup;
-    }
+    // Grupos intermedios: 1º sube 2, 2º sube 1, 3º baja 1, 4º baja 2
+    if (position === 1) return -2;
+    if (position === 2) return -1;
+    if (position === 3) return 1;
+    return 2; // 4º y 5º
 }
 
 // ========================================
-// GENERACIÓN DE NUEVA SERIE
+// GENERACIÓN PRINCIPAL
 // ========================================
 
 async function main() {
     console.log('==============================================');
-    console.log(`GENERADOR AUTOMÁTICO DE SERIE ${TARGET_SERIES_NUMBER}`);
+    console.log(`GENERADOR DE SERIE ${TARGET_SERIES_NUMBER}`);
     console.log('==============================================\n');
 
-    // 1. Login
-    console.log('Iniciando sesión...');
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: ADMIN_EMAIL,
-        password: ADMIN_PASSWORD
+    // Login
+    const { error: authError } = await supabase.auth.signInWithPassword({
+        email: ADMIN_EMAIL, password: ADMIN_PASSWORD
     });
+    if (authError) { console.error('Auth error:', authError.message); return; }
+    console.log('✓ Sesión iniciada\n');
 
-    if (authError) {
-        console.error('Error de autenticación:', authError.message);
-        return;
-    }
-    console.log(`✓ Sesión iniciada\n`);
-
-    // 2. Buscar serie de origen
-    console.log(`Buscando Serie ${SOURCE_SERIES_NUMBER}...`);
-    const { data: series, error: seriesError } = await supabase
-        .from('series')
-        .select('*')
-        .order('start_date', { ascending: true });
-
-    if (seriesError) {
-        console.error('Error buscando series:', seriesError);
-        return;
-    }
-
+    // Buscar series
+    const { data: series } = await supabase.from('series').select('*').order('start_date');
     const sourceSeries = series.find(s => s.name.toLowerCase().includes(`serie ${SOURCE_SERIES_NUMBER}`));
-    if (!sourceSeries) {
-        console.error(`No se encontró Serie ${SOURCE_SERIES_NUMBER}`);
-        return;
-    }
-    console.log(`✓ Serie origen: "${sourceSeries.name}" (ID: ${sourceSeries.id})\n`);
+    if (!sourceSeries) { console.error('Serie origen no encontrada'); return; }
+    console.log(`✓ Serie origen: ${sourceSeries.name}\n`);
 
-    // 3. Verificar si ya existe la serie destino
-    const existingSeries = series.find(s => s.name.toLowerCase().includes(`serie ${TARGET_SERIES_NUMBER}`) || s.name === `Serie ${TARGET_SERIES_NUMBER}`);
+    // Eliminar serie existente si FORCE_REGENERATE
+    const existingSeries = series.find(s =>
+        s.name.toLowerCase() === `serie ${TARGET_SERIES_NUMBER}` ||
+        s.name === `Serie ${TARGET_SERIES_NUMBER}`
+    );
     if (existingSeries) {
         if (FORCE_REGENERATE) {
-            console.log(`⚠️ Serie ${TARGET_SERIES_NUMBER} ya existe. Eliminando para regenerar...`);
-            const { error: deleteError } = await supabase
-                .from('series')
-                .delete()
-                .eq('id', existingSeries.id);
-            if (deleteError) {
-                console.error('Error eliminando serie:', deleteError);
-                return;
-            }
-            console.log(`✓ Serie anterior eliminada\n`);
+            await supabase.from('series').delete().eq('id', existingSeries.id);
+            console.log('✓ Serie anterior eliminada\n');
         } else {
-            console.log(`⚠️ Serie ${TARGET_SERIES_NUMBER} ya existe. ¿Desea regenerarla? (Esto borrará los datos existentes)`);
-            console.log('   Para continuar, establezca FORCE_REGENERATE = true o elimine manualmente la serie');
-            return;
+            console.log('Serie ya existe. Use FORCE_REGENERATE=true'); return;
         }
     }
 
-    // 4. Obtener grupos de la serie origen
-    console.log('Obteniendo grupos y jugadores...');
-    const { data: groups, error: groupsError } = await supabase
+    // Obtener grupos y jugadores de la serie origen
+    const { data: groups } = await supabase
         .from('groups')
         .select('*')
         .eq('series_id', sourceSeries.id)
         .order('level_index');
 
-    if (groupsError) {
-        console.error('Error obteniendo grupos:', groupsError);
-        return;
-    }
-    console.log(`✓ ${groups.length} grupos encontrados\n`);
-
-    // 5. Obtener jugadores de cada grupo con sus estadísticas
-    const { data: allGroupPlayers, error: gpError } = await supabase
+    const { data: allGroupPlayers } = await supabase
         .from('group_players')
-        .select(`
-            *,
-            players:player_id (id, name)
-        `)
+        .select('*, players:player_id(id, name)')
         .in('group_id', groups.map(g => g.id));
 
-    if (gpError) {
-        console.error('Error obteniendo jugadores:', gpError);
-        return;
-    }
+    const totalGroups = groups.length;
+    console.log(`✓ ${totalGroups} grupos, ${allGroupPlayers.length} jugadores\n`);
 
-    // Añadir nombre del jugador
-    const groupPlayersWithNames = allGroupPlayers.map(gp => ({
-        ...gp,
-        playerName: gp.players?.name || 'Desconocido'
-    }));
-
-    // 6. Clasificar cada grupo y calcular nuevo grupo
-    console.log('=== CLASIFICACIONES Y MOVIMIENTOS ===\n');
-
-    const playerMovements = []; // {playerId, playerName, fromGroup, toGroup}
+    // Clasificar cada grupo y calcular nuevo nivel
+    console.log('=== CLASIFICACIONES ===\n');
+    const playerNewLevels = []; // {playerId, playerName, oldLevel, newLevel}
 
     for (const group of groups) {
-        const groupPlayers = groupPlayersWithNames.filter(gp => gp.group_id === group.id);
+        const groupPlayers = allGroupPlayers.filter(gp => gp.group_id === group.id);
+        if (groupPlayers.length === 0) continue;
 
-        if (groupPlayers.length === 0) {
-            console.log(`Grupo ${group.level_index}: Sin jugadores`);
-            continue;
-        }
-
-        console.log(`📋 Grupo ${group.level_index} (${groupPlayers.length} jugadores):`);
-
-        // Clasificar con desempates
         const classified = await classifyGroup(group, groupPlayers);
+        const groupSize = classified.length;
 
-        // Calcular movimientos
-        classified.forEach(player => {
-            const newGroup = calculateNewGroup(
-                group.level_index,
-                player.position,
-                groups.length,
-                groupPlayers.length
-            );
+        console.log(`Grupo ${group.level_index} (${groupSize} jug):`);
 
-            const movement = newGroup < group.level_index ? '⬆️' :
-                            newGroup > group.level_index ? '⬇️' : '➡️';
+        for (const player of classified) {
+            const movement = getMovementForPosition(group.level_index, player.position, totalGroups, groupSize);
+            let newLevel = group.level_index + movement;
+            newLevel = Math.max(1, Math.min(totalGroups, newLevel));
 
-            console.log(`   ${player.position}º ${player.playerName} (${player.group_points} pts) → Grupo ${newGroup} ${movement}`);
+            const arrow = movement < 0 ? '⬆️' : movement > 0 ? '⬇️' : '➡️';
+            console.log(`  ${player.position}º ${player.players?.name || 'N/A'} (${player.group_points || 0}pts) → G${newLevel} ${arrow}`);
 
-            playerMovements.push({
+            playerNewLevels.push({
                 playerId: player.player_id,
-                playerName: player.playerName,
-                fromGroup: group.level_index,
-                toGroup: newGroup,
-                position: player.position
+                playerName: player.players?.name || 'N/A',
+                oldLevel: group.level_index,
+                newLevel: newLevel
             });
-        });
+        }
         console.log('');
     }
 
-    // 7. Crear nueva serie
-    console.log('=== CREANDO NUEVA SERIE ===\n');
+    // Agrupar por nuevo nivel inicial
+    const levelAssignments = {};
+    for (let i = 1; i <= totalGroups; i++) levelAssignments[i] = [];
+    playerNewLevels.forEach(p => levelAssignments[p.newLevel].push(p));
 
-    const { data: newSeries, error: newSeriesError } = await supabase
+    console.log('=== REBALANCEO DE GRUPOS ===\n');
+
+    // Mostrar distribución inicial
+    console.log('Distribución inicial:');
+    for (let i = 1; i <= totalGroups; i++) {
+        const count = levelAssignments[i].length;
+        if (count < 4 || count > 5) {
+            console.log(`  Grupo ${i}: ${count} jugadores`);
+        }
+    }
+
+    // Calcular cuántos grupos necesitan 5 jugadores
+    const totalPlayers = playerNewLevels.length;
+    const groupsWithFive = totalPlayers - (totalGroups * 4); // 180 - 164 = 16 grupos con 5
+    console.log(`\nTotal jugadores: ${totalPlayers}`);
+    console.log(`Grupos de 4: ${totalGroups - groupsWithFive}`);
+    console.log(`Grupos de 5: ${groupsWithFive}`);
+
+    // Rebalancear: permitir grupos de 4 o 5
+    // Estrategia: los últimos grupos tendrán 5 jugadores
+    const groupSizeTarget = {};
+    for (let i = 1; i <= totalGroups; i++) {
+        // Los últimos 'groupsWithFive' grupos tendrán 5 jugadores
+        groupSizeTarget[i] = i > (totalGroups - groupsWithFive) ? 5 : 4;
+    }
+
+    // Mover jugadores de grupos con exceso a grupos con déficit
+    let iterations = 0;
+    const maxIterations = 500;
+
+    while (iterations < maxIterations) {
+        iterations++;
+        let moved = false;
+
+        // Buscar grupo con exceso y grupo con déficit
+        for (let level = 1; level <= totalGroups; level++) {
+            const target = groupSizeTarget[level];
+
+            // Si tiene más jugadores de los que debería
+            while (levelAssignments[level].length > target) {
+                const playerToMove = levelAssignments[level].pop();
+
+                // Buscar el grupo más cercano que necesite jugadores
+                let found = false;
+                for (let dist = 1; dist < totalGroups && !found; dist++) {
+                    // Intentar hacia abajo primero
+                    if (level + dist <= totalGroups &&
+                        levelAssignments[level + dist].length < groupSizeTarget[level + dist]) {
+                        levelAssignments[level + dist].push(playerToMove);
+                        playerToMove.newLevel = level + dist;
+                        found = true;
+                        moved = true;
+                    }
+                    // Luego hacia arriba
+                    else if (level - dist >= 1 &&
+                        levelAssignments[level - dist].length < groupSizeTarget[level - dist]) {
+                        levelAssignments[level - dist].push(playerToMove);
+                        playerToMove.newLevel = level - dist;
+                        found = true;
+                        moved = true;
+                    }
+                }
+
+                if (!found) {
+                    // No se encontró hueco, devolverlo
+                    levelAssignments[level].push(playerToMove);
+                    break;
+                }
+            }
+        }
+
+        // Verificar si ya está balanceado
+        let balanced = true;
+        for (let i = 1; i <= totalGroups; i++) {
+            if (levelAssignments[i].length !== groupSizeTarget[i]) {
+                balanced = false;
+                break;
+            }
+        }
+
+        if (balanced || !moved) break;
+    }
+
+    console.log(`\nIteraciones de rebalanceo: ${iterations}`);
+
+    // Mostrar distribución final
+    console.log('\nDistribución final:');
+    let totalFinal = 0;
+    let allOk = true;
+    for (let i = 1; i <= totalGroups; i++) {
+        const count = levelAssignments[i].length;
+        totalFinal += count;
+        const target = groupSizeTarget[i];
+        const status = count === target ? '✓' : '⚠️';
+        if (count !== target) allOk = false;
+        console.log(`  ${status} Grupo ${i}: ${count} jugadores (objetivo: ${target})`);
+    }
+    console.log(`Total: ${totalFinal} jugadores`);
+
+    if (!allOk) {
+        console.log('\n⚠️ ADVERTENCIA: No se pudo balancear perfectamente');
+    } else {
+        console.log('\n✓ Grupos balanceados correctamente');
+    }
+
+    // Crear nueva serie
+    console.log('=== CREANDO SERIE ===\n');
+    const { data: newSeries, error: seriesError } = await supabase
         .from('series')
         .insert([{
             name: `Serie ${TARGET_SERIES_NUMBER}`,
             start_date: NEW_SERIES_START_DATE,
             end_date: NEW_SERIES_END_DATE,
-            is_active: false,  // Oculta hasta que admin la active
+            is_active: false,
             status: 'pending'
         }])
         .select()
         .single();
 
-    if (newSeriesError) {
-        console.error('Error creando serie:', newSeriesError);
-        return;
-    }
-    console.log(`✓ Serie ${TARGET_SERIES_NUMBER} creada (ID: ${newSeries.id})`);
-    console.log(`  ⚠️ Estado: OCULTA (is_active: false)\n`);
+    if (seriesError) { console.error('Error creando serie:', seriesError); return; }
+    console.log(`✓ Serie ${TARGET_SERIES_NUMBER} creada (OCULTA)\n`);
 
-    // 8. Agrupar jugadores por nuevo grupo
-    const newGroupAssignments = {};
-    playerMovements.forEach(pm => {
-        if (!newGroupAssignments[pm.toGroup]) {
-            newGroupAssignments[pm.toGroup] = [];
-        }
-        newGroupAssignments[pm.toGroup].push(pm);
-    });
-
-    // 9. Crear grupos de la nueva serie
-    console.log('Creando grupos...');
-
-    const maxGroup = Math.max(...Object.keys(newGroupAssignments).map(Number));
+    // Crear grupos
     const createdGroups = {};
-
-    for (let i = 1; i <= maxGroup; i++) {
-        const { data: newGroup, error: newGroupError } = await supabase
+    for (let i = 1; i <= totalGroups; i++) {
+        const { data: newGroup } = await supabase
             .from('groups')
-            .insert([{
-                series_id: newSeries.id,
-                name: `Grupo ${i}`,
-                level_index: i
-            }])
+            .insert([{ series_id: newSeries.id, name: `Grupo ${i}`, level_index: i }])
             .select()
             .single();
-
-        if (newGroupError) {
-            console.error(`Error creando grupo ${i}:`, newGroupError);
-            continue;
-        }
-
         createdGroups[i] = newGroup.id;
     }
-    console.log(`✓ ${Object.keys(createdGroups).length} grupos creados\n`);
+    console.log(`✓ ${totalGroups} grupos creados\n`);
 
-    // 10. Asignar jugadores a los nuevos grupos
-    console.log('Asignando jugadores a grupos...');
-
-    let assignedCount = 0;
-    for (const [groupIndex, players] of Object.entries(newGroupAssignments)) {
-        const groupId = createdGroups[groupIndex];
-        if (!groupId) continue;
-
-        for (const player of players) {
-            const { error: assignError } = await supabase
-                .from('group_players')
-                .insert([{
-                    group_id: groupId,
-                    player_id: player.playerId,
-                    matches_played: 0,
-                    matches_won: 0,
-                    matches_lost: 0,
-                    sets_won: 0,
-                    sets_lost: 0,
-                    games_won: 0,
-                    games_lost: 0,
-                    group_points: 0
-                }]);
-
-            if (assignError) {
-                console.error(`Error asignando ${player.playerName}:`, assignError);
-            } else {
-                assignedCount++;
-            }
+    // Asignar jugadores
+    let assigned = 0;
+    for (let level = 1; level <= totalGroups; level++) {
+        const groupId = createdGroups[level];
+        for (const player of levelAssignments[level]) {
+            await supabase.from('group_players').insert([{
+                group_id: groupId,
+                player_id: player.playerId,
+                matches_played: 0, matches_won: 0, matches_lost: 0,
+                sets_won: 0, sets_lost: 0, games_won: 0, games_lost: 0, group_points: 0
+            }]);
+            assigned++;
         }
     }
-    console.log(`✓ ${assignedCount} jugadores asignados\n`);
+    console.log(`✓ ${assigned} jugadores asignados\n`);
 
-    // 11. Resumen final
     console.log('==============================================');
-    console.log('RESUMEN');
-    console.log('==============================================');
-    console.log(`Serie creada: ${newSeries.name}`);
-    console.log(`Grupos: ${Object.keys(createdGroups).length}`);
-    console.log(`Jugadores: ${assignedCount}`);
-    console.log(`Estado: OCULTA (para revisión del admin)`);
-    console.log('');
-    console.log('📌 Próximos pasos:');
-    console.log('   1. Revisar asignaciones en el panel de admin');
-    console.log('   2. Hacer ajustes manuales si es necesario');
-    console.log('   3. Activar la serie (is_active = true) cuando esté lista');
+    console.log('COMPLETADO');
+    console.log(`Serie ${TARGET_SERIES_NUMBER}: ${totalGroups} grupos, ${assigned} jugadores`);
+    console.log('Estado: OCULTA - Actívala desde el admin cuando esté lista');
     console.log('==============================================');
 }
 
